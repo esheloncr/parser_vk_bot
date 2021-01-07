@@ -25,16 +25,31 @@ def article_parse(num):
     article = r.get(url_list[num], headers=headers)
     article_src = article.text
     soup = bs(article_src, "lxml")
+    article_id = soup.findAll("article", class_="story")
+    for ids in reversed(article_id):
+        get_id = ids.get("data-story-id")
     # Парсим h1 тэг
     article_title = soup.find(class_="story__title-link").contents[0]
     article_main.append(article_title)
     # Парсим текст статьи
     article_text = soup.find(class_="story-block story-block_type_text")
     article_main.append(article_text)
+    # Парсим картинки(если есть, и пропускаем если нету)
+    #article_image = soup.findAll("figure", class_="story-image image-lazy")
+    article_image = soup.findAll("article", {"data-story-id":"{0}".format(get_id)})
+    if len(article_image) == 0:
+        print("No images in article")
+    else:
+        #for img in reversed(article_image):
+        for img in article_image:
+            img_urls = img.find("img")
+            img_url = img_urls.get("data-large-image")
+        # Продолжить тут
+        article_main.append(img_url)
     # Проверяем есть-ли видео в статье, если есть - парсим ссылку, если нету - пропускаем
     video_urls =[]
     article_video = soup.findAll(class_="player")
-    if article_video == []:
+    if len(article_video) == 0:
         print("No video in Article")
     else:
         for gg in article_video:
@@ -46,14 +61,14 @@ def article_parse(num):
             article_main.append(video_url)
     return article_main
 
-counter = 0
+"""counter = 0
 while counter != len(url_list):
     article_parse(counter)
     counter += 1
     t.sleep(10)
     print(article_main)
-print("End")
-
+print("End")"""
+print(article_parse(1))
 
 
 

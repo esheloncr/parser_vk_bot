@@ -21,31 +21,32 @@ for item in get_h2:
     url_list.append(article_url)
 # Парсим статью
 article_main = []
-article = r.get(url_list[0], headers=headers)
-article_src = article.text
-soup = bs(article_src, "lxml")
-# Парсим h1 тэг
-article_title = soup.find(class_="story__title-link").contents[0]
-article_main.append(article_title)
-# Парсим текст статьи
-article_text = soup.find(class_="story-block story-block_type_text")
-article_main.append(article_text)
-# Проверяем есть-ли видео в статье, если есть - парсим ссылку, если нету - пропускаем
-video_urls =[]
-article_video = soup.findAll(class_="player")
-if article_video == []:
-    print("No video in Article")
-else:
-    for gg in article_video:
-        video_urls.append(gg.get("data-webm"))
-    if video_urls[0] == None:
-        print("No video URL")
+def parse(num):
+    article = r.get(url_list[num], headers=headers)
+    article_src = article.text
+    soup = bs(article_src, "lxml")
+    # Парсим h1 тэг
+    article_title = soup.find(class_="story__title-link").contents[0]
+    article_main.append(article_title)
+    # Парсим текст статьи
+    article_text = soup.find(class_="story-block story-block_type_text")
+    article_main.append(article_text)
+    # Проверяем есть-ли видео в статье, если есть - парсим ссылку, если нету - пропускаем
+    video_urls =[]
+    article_video = soup.findAll(class_="player")
+    if article_video == []:
+        print("No video in Article")
     else:
-        video_url = video_urls[0]
-        article_main.append(video_url)
+        for gg in article_video:
+            video_urls.append(gg.get("data-webm"))
+        if video_urls[0] == None:
+            print("No video URL")
+        else:
+            video_url = video_urls[0]
+            article_main.append(video_url)
+    return article_main
 
-
-print(article_main)
+print(parse(1))
 
 
 

@@ -21,7 +21,7 @@ for item in get_h2:
     url_list.append(article_url)
 # Парсим статью
 article_main = []
-def parse(num):
+def article_parse(num):
     article = r.get(url_list[num], headers=headers)
     article_src = article.text
     soup = bs(article_src, "lxml")
@@ -46,7 +46,13 @@ def parse(num):
             article_main.append(video_url)
     return article_main
 
-print(parse(1))
+counter = 0
+while counter != len(url_list):
+    article_parse(counter)
+    counter += 1
+    t.sleep(10)
+    print(article_main)
+print("End")
 
 
 

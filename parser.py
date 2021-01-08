@@ -7,7 +7,7 @@ url = "https://pikabu.ru/"
 headers = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36"
 }
-content = {}  # записать контент в виде "url статьи":[содержимое статьи]
+content = {}
 # Получаем urls статей
 # сделать функцию для проверки подключения
 url_list = []
@@ -31,14 +31,16 @@ def article_parse(num):
     for ids in reversed(article_id):
         get_id = ids.get("data-story-id")
     # Парсим h1 тэг
-    article_title = soup.find("span", class_="story__title-link").contents
+    article_title = soup.find("span", class_="story__title-link").contents[0]
     article_main.append(article_title)
     # Парсим текст статьи
-    #article_text = soup.find(class_="story-block story-block_type_text").contents
     article_text = soup.findAll("article",{"data-story-id":"{0}".format(get_id)})
     for text in article_text:
-        abc = text.find(class_="story-block story-block_type_text").contents
-    article_main.append(abc)
+        try:
+            abc = text.find(class_="story-block story-block_type_text")
+            article_main.append(abc.text)
+        except AttributeError:
+            print("No text in Article, only H1")
     # Парсим картинки(если есть, и пропускаем если нету)
     article_image = soup.findAll("article", {"data-story-id":"{0}".format(get_id)})
     for img in article_image:
@@ -60,15 +62,18 @@ def article_parse(num):
         else:
             video_url = video_urls[0]
             article_main.append(video_url)
+    print("ok")
     return article_main
 
 counter = 0
-while counter != 2:
+while counter != len(url_list):
+    print(url_list[counter])
     content.update({url_list[counter]:article_parse(counter)})
     counter += 1
 json.dumps(content, ensure_ascii=False)
 print(content)
-#разобраться, где приходят не те данные
+print("end")
+
 
 
 

@@ -73,7 +73,3 @@ while counter != len(url_list):
 json.dumps(content, ensure_ascii=False)
 print(content)
 print("end")
-
-
-
-

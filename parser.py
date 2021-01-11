@@ -1,5 +1,6 @@
 import requests as r
 from bs4 import BeautifulSoup as bs
+from parser_vk_bot.db.CRUD import new_url
 import time as t
 import json
 
@@ -13,13 +14,16 @@ content = {}
 url_list = []
 pikabu = r.get(url, headers=headers)
 pikabu_src = pikabu.text
-soup = bs(pikabu_src, "lxml")
+soup = bs(pikabu_src, "html.parser")
 soup.prettify()
-get_h2 = soup.findAll(class_="story__title")
-for item in get_h2:
-    get_url = item.find("a")
-    article_url = get_url.get("href")
-    url_list.append(article_url)
+# Парсим urls
+def parse_url():
+    get_h2 = soup.findAll(class_="story__title")
+    for item in get_h2:
+        get_url = item.find("a")
+        article_url = get_url.get("href")
+        url_list.append(article_url)
+    return
 # Парсим статью
 def article_parse(num):
     article_main = []
@@ -27,49 +31,60 @@ def article_parse(num):
     article_src = article.text
     soup = bs(article_src, "lxml")
     # Парсим id статьи +
-    article_id = soup.findAll("article", class_="story")
-    for ids in reversed(article_id):
-        get_id = ids.get("data-story-id")
+    def parse_id():
+        article_id = soup.findAll("article", class_="story")
+        for ids in reversed(article_id):
+            get_id = ids.get("data-story-id")
+        return get_id
     # Парсим h1 тэг
-    article_title = soup.find("span", class_="story__title-link").contents[0]
-    article_main.append(article_title)
+    def parse_h1():
+        article_h1 = soup.findAll("h1",class_="story__title")
+        for i in article_h1:
+            h1 = i.text.replace("\n","")
+            article_main.append(h1)
+        return h1
     # Парсим текст статьи
-    article_text = soup.findAll("article",{"data-story-id":"{0}".format(get_id)})
-    for text in article_text:
-        try:
-            abc = text.find(class_="story-block story-block_type_text")
-            article_main.append(abc.text)
-        except AttributeError:
-            print("No text in Article, only H1")
+    def parse_text():
+        article_text = soup.findAll("article",{"data-story-id":"{0}".format(parse_id())})
+        for text in article_text:
+            try:
+                abc = text.find(class_="story-block story-block_type_text")
+                bca = abc.text.replace("\n",'')
+                article_main.append(bca)
+                return bca
+            except AttributeError:
+                return "No text in Article, only H1"
     # Парсим картинки(если есть, и пропускаем если нету)
-    article_image = soup.findAll("article", {"data-story-id":"{0}".format(get_id)})
-    for img in article_image:
-        try:
-            img_url = img.find(class_="story-image__content image-lazy").find("a").get("href")
-            article_main.append(img_url)
-        except AttributeError:
-            print("No image in Article")
+    def parse_img():
+        article_image = soup.findAll("article", {"data-story-id":"{0}".format(parse_id())})
+        for img in article_image:
+            try:
+                img_url = img.find(class_="story-image__content image-lazy").find("a").get("href")
+                article_main.append(img_url)
+                return img_url
+            except AttributeError:
+                return None
     # Проверяем есть-ли видео в статье, если есть - парсим ссылку, если нету - пропускаем
-    video_urls =[]
-    article_video = soup.findAll(class_="player")
-    if len(article_video) == 0:
-        print("No video in Article")
-    else:
-        for gg in article_video:
-            video_urls.append(gg.get("data-webm"))
-        if video_urls[0] == None:
-            print("No video URL")
-        else:
-            video_url = video_urls[0]
-            article_main.append(video_url)
-    print("ok")
+    def parse_video():
+        video_urls =[]
+        article_video = soup.findAll("article", {"data-story-id": "{0}".format(parse_id())})
+        for video in article_video:
+            try:
+                a = video.find(class_="player").get("data-source")
+                article_main.append(a)
+                return a
+            except AttributeError:
+                return None
+    new_url(url_list[num], parse_id(), parse_h1(), parse_text(), parse_img(), parse_video())
     return article_main
 
-counter = 0
-while counter != len(url_list):
-    print(url_list[counter])
-    content.update({url_list[counter]:article_parse(counter)})
-    counter += 1
-json.dumps(content, ensure_ascii=False)
-print(content)
-print("end")
+
+if __name__ == "__main__":
+    counter = 0
+    parse_url()
+    while counter != len(url_list):
+        content.update({url_list[counter]:article_parse(counter)})
+        counter += 1
+    json.dumps(content, ensure_ascii=False)
+    print(content)
+    print("end")

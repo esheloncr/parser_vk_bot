@@ -27,7 +27,6 @@ class Article(Base):
 	video_url = Column("video",String)
 
 	def __repr__(self):
-		return self.url + " " + self.title + " " + self.image_url + " " + self.video_url
-		
+		return self.url + " " + self.title + " " + self.text + " " + self.image_url + " " + self.video_url
 #Base.metadata.drop_all(engine)
 #Base.metadata.create_all(engine)

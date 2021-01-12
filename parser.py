@@ -86,5 +86,3 @@ if __name__ == "__main__":
         content.update({url_list[counter]:article_parse(counter)})
         counter += 1
     json.dumps(content, ensure_ascii=False)
-    print(content)
-    print("end")

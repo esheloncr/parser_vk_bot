@@ -19,3 +19,20 @@ def new_url(url,article_id,title,text,image_url="",video_url=""):
         session.add(new_url)
         return session.commit()
     return "Error"
+
+def show_url(id):
+    if session.query(Article.image_url).filter_by(id=id).one()[0] == "No image in article" and session.query(Article.video_url).filter_by(id=id).one()[0] == "No video in article":
+        a = session.query(Article.title).filter_by(id=id).one()
+        b = session.query(Article.text).filter_by(id=id).one()
+        return a[0] + "\n" + b[0]
+    elif session.query(Article.image_url).filter_by(id=id).one()[0] == "No image in article":
+        a = session.query(Article.title).filter_by(id=id).one()
+        b = session.query(Article.text).filter_by(id=id).one()
+        c = session.query(Article.video_url).filter_by(id=id).one()
+        return a[0] + "\n" + b[0] + "\n" + c[0]
+    elif session.query(Article.video_url).filter_by(id=id).one()[0] == "No video in article":
+        a = session.query(Article.title).filter_by(id=id).one()
+        b = session.query(Article.text).filter_by(id=id).one()
+        c = session.query(Article.image_url).filter_by(id=id).one()
+        return a[0] + "\n" + b[0] + "\n" + c[0]
+# Добавить функции для удаления, обновления, и чтения
